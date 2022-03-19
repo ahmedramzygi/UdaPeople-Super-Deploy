@@ -197,7 +197,7 @@ jobs:
           fingerprints:
             - '04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a'
       - attach_workspace:
-          at: .circleci/ansible/inventory.txt
+          at: .circleci/ansible
       - dependencies
       - run:
           name: Configuring server
@@ -333,11 +333,11 @@ workflows:
       #     requires: [build-backend]
       # - scan-frontend:
       #     requires: [build-frontend]
-      - deploy-infrastructure
+      # - deploy-infrastructure
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
 
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
+      - configure-infrastructure
+          # requires: [deploy-infrastructure]
       # - run-migrations:
       #     requires: [configure-infrastructure]
       # - deploy-frontend:
