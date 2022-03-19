@@ -230,19 +230,20 @@ jobs:
 
   run-migrations:
     docker:
-      - image: circleci/node:13.8.0
+      - image: sleavely/node-awscli:14.x
     steps:
       - checkout
       - restore_cache:
           keys:
             - build-backend
       - run:
-          name: Running migrations
+          name: Run migrations
           command: |
             cd backend
-            npm install
-            npm audit fix --audit-level=critical --force
-            npm run migrations > migrations_dump.txt
+            cat .env
+            npm i
+            npm run build
+            npm run migrations
       - run:
           name: Sending migration status to thisdb.com
           command: |
@@ -260,7 +261,7 @@ jobs:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
   deploy-frontend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:13.14.0
     steps:
       - checkout
       - restore_cache:
@@ -291,7 +292,7 @@ jobs:
                     
   deploy-backend:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:13.14.0
     steps:
       - checkout
       - attach_workspace:
