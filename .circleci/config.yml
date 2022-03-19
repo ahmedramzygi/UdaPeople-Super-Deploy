@@ -209,7 +209,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: cimg/node:13.14.0
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -220,6 +220,7 @@ jobs:
           command: |
             cd backend
             npm install
+            npm audit fix
             npm run migrations > migrations_dump.txt
       - run:
           name: Sending migration status to thisdb.com
