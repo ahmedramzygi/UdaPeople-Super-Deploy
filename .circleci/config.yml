@@ -207,23 +207,35 @@ jobs:
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
-#   run-migrations:
-#     docker:
-#       # Docker image here that supports NodeJS
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Run migrations
-#           command: |
-#             # Your code here
-#             exit 1
-#       - run:
-#           name: Send migration results to memstash
-#           command: |
-#             # Your code here
-#             exit 1
-#      # Here's where you will add some code to rollback on failure      
-
+  run-migrations:
+    docker:
+      - image: cimg/node:13.14.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - build-backend
+      - run:
+          name: Running migrations
+          command: |
+            cd backend
+            npm install
+            npm run migrations > migrations_dump.txt
+      - run:
+          name: Sending migration status to thisdb.com
+          command: |
+            if grep -q "has been executed successfully" ./backend/migrations_dump.txt
+            then
+              curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
+                -H "X-Api-Key: ${THISDB_API_KEY}" \
+                -d "1"
+            else
+              curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
+                -H "X-Api-Key: ${THISDB_API_KEY}" \
+                -d "0"
+            fi
+      - destroy-environment:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 #   deploy-frontend:
 #     docker:
 #       # Docker image here that supports AWS CLI
@@ -338,8 +350,8 @@ workflows:
 
       - configure-infrastructure
           # requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
       # - deploy-frontend:
       #     requires: [run-migrations]
       # - deploy-backend:
