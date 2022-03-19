@@ -5,19 +5,19 @@ commands:
       - run:
           name: Installing necessary packages
           command: |
-              apt update
-              apt install -y tar gzip curl software-properties-common
+            sudo apt update
+            sudo apt install -y tar gzip curl software-properties-common
       - run:
           name: Installing aws-cli
           command: |
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
-              ./aws/install
+            sudo ./aws/install
       - run:
           name: Installing ansible
           command: |
-              add-apt-repository --yes --update ppa:ansible/ansible
-              apt install ansible
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible
   destroy-environment:
     parameters:
       workflow_id:
@@ -377,26 +377,28 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [build-backend]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [build-backend]
 
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations:
-          # requires: [configure-infrastructure]
-      - deploy-frontend
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+            requires: [configure-infrastructure]
           # requires: [run-migrations]
-      - deploy-backend
+      - deploy-backend:
+            requires: [configure-infrastructure]
           # requires: [run-migrations]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
