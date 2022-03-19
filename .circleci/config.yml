@@ -155,7 +155,10 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - dependencies
+      - run:
+          name: Install tar utility
+          command: |
+            yum install -y tar gzip
       # Checkout code from git
       - run:
           name: Ensure back-end infrastructure exists
@@ -189,7 +192,18 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: circleci/node:13.8.0
+      - image: python:3.7-alpine3.11
+        environment:
+          NODE_ENV: "local"
+          VERSION: "1"
+          ENVIRONMENT: "production"
+          TYPEORM_CONNECTION: $TYPEORM_CONNECTION
+          TYPEORM_HOST: $TYPEORM_HOST
+          TYPEORM_USERNAME: $TYPEORM_USERNAME
+          TYPEORM_PASSWORD: $TYPEORM_PASSWORD
+          TYPEORM_DATABASE: $TYPEORM_DATABASE
+          TYPEORM_PORT: $TYPEORM_PORT
+          TYPEORM_ENTITIES: $TYPEORM_ENTITIES     
     steps:
       - checkout
       - add_ssh_keys:
