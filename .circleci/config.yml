@@ -152,8 +152,7 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      - image: cimg/base:2021.04
-
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - dependencies
@@ -190,7 +189,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: cimg/base:2021.04
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - add_ssh_keys:
@@ -281,7 +280,7 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-          
+
             printenv | grep "TYPEORM" > ./backend/.env
             tar -C backend -czvf artifact.tar.gz .
             mkdir -p ./ansible/roles/deploy/tasks/
