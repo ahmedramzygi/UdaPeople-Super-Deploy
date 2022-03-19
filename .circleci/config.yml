@@ -220,7 +220,7 @@ jobs:
           command: |
             cd backend
             npm install
-            npm audit fix --force
+            npm audit fix --audit-level=critical --force
             npm run migrations > migrations_dump.txt
       - run:
           name: Sending migration status to thisdb.com
@@ -237,25 +237,35 @@ jobs:
             fi
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-#   deploy-frontend:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Get backend url
-#           command: |
-#             # your code here
-#             export API_URL="http://${BACKEND_IP}:3030"
-#             echo "${API_URL}"
-#       - run:
-#           name: Deploy frontend objects
-#           command: |
-#             # your code here
+  # deploy-frontend:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys:
+  #           - build-frontend
+  #     - dependencies
+  #     - run:
+  #         name: Get backend url
+  #         command: |
+  #            BACKEND_IP=$(aws ec2 describe-instances \
+  #             --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
+  #             --query 'Reservations[*].Instances[*].PublicIpAddress' \
+  #             --output text)
+  #            API_URL="http://${BACKEND_IP}:3030"
+  #            echo "API_URL=${API_URL}" >> frontend/.env
+  #     - run:
+  #         name: Deploy frontend objects
+  #         working_directory: ./frontend
+  #         command: |
+  #           npm i
+  #           npm run build
+  #           tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+  #           aws s3 cp dist "s3://udapeople-798534a" --recursive
+  #     # Here's where you will add some code to rollback on failure
+  #     - destroy-environment:
+  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 #       # Here's where you will add some code to rollback on failure      
                     
 #   deploy-backend:
