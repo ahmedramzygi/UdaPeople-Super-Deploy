@@ -199,7 +199,7 @@ jobs:
           fingerprints: ["8a:95:e4:6d:e0:1c:c6:2c:da:2a:ea:36:6b:fc:69:9f"]
       - attach_workspace:
           at: .circleci/ansible
-      - install-dependencies
+      - dependencies
       - run:
           name: Configure server
           command: |
