@@ -314,7 +314,7 @@ jobs:
           at: .circleci/ansible
       - add_ssh_keys:
           fingerprints: ["8a:95:e4:6d:e0:1c:c6:2c:da:2a:ea:36:6b:fc:69:9f"]
-      - install-dependencies
+      - dependencies
       - run:
           name: Deploy backend
           command: |
