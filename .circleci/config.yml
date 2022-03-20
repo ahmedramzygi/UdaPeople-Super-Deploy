@@ -327,29 +327,51 @@ jobs:
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-#   smoke-test:
-#     docker:
-#       # Lightweight Docker image 
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Get backend url
-#           command: |
-#             # your code here
-#       - run:
-#           name: Backend smoke test.
-#           command: |
-#             # your code here
-#       - run:
-#           name: Frontend smoke test.
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
-
+  smoke-test_backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /root
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update curl
+            pip install awscli
+      - run:
+          name: Backend smoke test.
+          command: |
+            BACKEND_IP=$(aws cloudformation describe-stacks --stack-name udapeople-backend-"${CIRCLE_WORKFLOW_ID:0:7}" --query "Stacks[0].Outputs[0].OutputValue" --output text)
+            API_URL="http://${BACKEND_IP}:3030"
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+              exit 0
+            else
+              exit 1
+            fi
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
+  smoke_test_frontend:
+    docker:
+      - image: cimg/node:13.14.0
+    steps:
+      - checkout
+      - dependencies
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Package frontend app
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
+            if curl -s ${URL} | grep "Welcome"
+            then
+              exit 0
+            else
+              exit 1
+            fi
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
 #   cloudfront-update:
 #     docker:
 #       # Docker image here that supports AWS CLI
@@ -403,7 +425,8 @@ workflows:
 
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
-      - run-migrations
+      - smoke_test_frontend
+      - smoke-test_backend
           # requires: [configure-infrastructure]
       # - deploy-frontend:
       #       requires: [configure-infrastructure]
