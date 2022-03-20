@@ -228,34 +228,33 @@ jobs:
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
-  # run-migrations:
-  #   docker:
-  #     - image: sleavely/node-awscli:14.x
-  #   steps:
-  #     - checkout
-  #     - restore_cache:
-  #         keys:
-  #           - build-backend
-  #     - run:
-  #         name: Run migrations
-  #         command: |
-  #           cd backend
-  #           npm i
-  #           npm run build
-  #           npm run migrations
-  #     - run:
-  #         name: Sending migration status to thisdb.com
-  #         command: |
-  #           if grep -q "has been executed successfully" ./backend/migrations_dump.txt
-  #           then
-  #             curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
-  #               -H "X-Api-Key: ${THISDB_API_KEY}" \
-  #               -d "1"
-  #           else
-  #             curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
-  #               -H "X-Api-Key: ${THISDB_API_KEY}" \
-  #               -d "0"
-  #           fi
+  run-migrations:
+    docker:
+      - image: sleavely/node-awscli:14.x
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - build-backend
+      - run:
+          name: Run migrations
+          command: |
+            cd backend
+            npm run migrations > migrations_dump.txt
+            cat migrations_dump.txt
+      - run:
+          name: Sending migration status to thisdb.com
+          command: |
+            if grep -q "has been executed successfully" ./backend/migrations_dump.txt
+            then
+              curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
+                -H "X-Api-Key: ${THISDB_API_KEY}" \
+                -d "1"
+            else
+              curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
+                -H "X-Api-Key: ${THISDB_API_KEY}" \
+                -d "0"
+            fi
   #     - destroy-environment:
   #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 
@@ -284,10 +283,10 @@ jobs:
             npm i
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
-            aws s3 cp dist "s3://udapeople-798534a" --recursive
+            aws s3 cp dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
       # Here's where you will add some code to rollback on failure
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   #     # Here's where you will add some code to rollback on failure
   #     - destroy-environment:
   #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
@@ -404,8 +403,8 @@ workflows:
 
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
       - deploy-frontend:
             requires: [configure-infrastructure]
           # requires: [run-migrations]
