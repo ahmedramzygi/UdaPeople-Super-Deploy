@@ -179,10 +179,10 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            aws cloudformation describe-stacks \
-            --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --query "Stacks[0].Outputs[0].OutputValue" \
-            --output text >> .circleci/ansible/inventory.txt
+            aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -425,10 +425,13 @@ workflows:
 
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-          # requires: [configure-infrastructure]
+
+      - run-migrations:
+          requires: [configure-infrastructure]
+
       - deploy-frontend:
             requires: [configure-infrastructure]
-          # requires: [run-migrations]
+
       - deploy-backend:
             requires: [configure-infrastructure]
           # requires: [run-migrations]
