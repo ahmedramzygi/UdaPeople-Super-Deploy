@@ -232,7 +232,7 @@ jobs:
 
   run-migrations:
     docker:
-      - image: sleavely/node-awscli:14.x
+      - image: cimg/node:13.14.0
     steps:
       - checkout
       - restore_cache:
@@ -243,8 +243,8 @@ jobs:
           command: |
             cd backend
             npm install
-            npm run build
             npm run migrations > migrations_dump.txt
+            cat migrations_dump.txt
       - run:
           name: Sending migration status to thisdb.com
           command: |
@@ -317,7 +317,7 @@ jobs:
       - attach_workspace:
           at: .circleci/ansible
       - add_ssh_keys:
-          fingerprints: ["8a:95:e4:6d:e0:1c:c6:2c:da:2a:ea:36:6b:fc:69:9f"]
+          fingerprints: ["04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a"]
       - dependencies
       - run:
           name: Deploy backend
