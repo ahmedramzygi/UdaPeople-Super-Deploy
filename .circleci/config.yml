@@ -261,13 +261,17 @@ jobs:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
   deploy-frontend:
     docker:
-      - image: cimg/node:13.14.0
+      - image: amazon/aws-cli
     steps:
       - checkout
+      - run:
+          name: Install tar utility
+          command: |
+            yum install -y tar gzip
+
       - restore_cache:
           keys:
             - build-frontend
-      - dependencies
       - run:
           name: Get backend url
           command: |
@@ -292,18 +296,33 @@ jobs:
                     
   deploy-backend:
     docker:
-      - image: cimg/node:13.14.0
+      - image: python:3.7-alpine3.11
+        environment:
+          NODE_ENV: "local"
+          VERSION: "1"
+          ENVIRONMENT: "production"
+          TYPEORM_CONNECTION: $TYPEORM_CONNECTION
+          TYPEORM_HOST: $TYPEORM_HOST
+          TYPEORM_USERNAME: $TYPEORM_USERNAME
+          TYPEORM_PASSWORD: $TYPEORM_PASSWORD
+          TYPEORM_DATABASE: $TYPEORM_DATABASE
+          TYPEORM_PORT: $TYPEORM_PORT
+          TYPEORM_ENTITIES: $TYPEORM_ENTITIES
     steps:
       - checkout
-      - attach_workspace:
-          at: .circleci/ansible
       - add_ssh_keys:
-          fingerprints: ["04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a"]
-      - dependencies
+          fingerprints: ["eb:8c:c3:a9:4b:36:3f:c7:69:df:e2:36:d3:22:f5:ed"]
+      - attach_workspace:
+          at: /root
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible rsync 
+            apk add curl
+            pip3 install awscli
       - run:
           name: Deploy backend
           command: |
-
             printenv | grep "TYPEORM" > ./backend/.env
             tar -C backend -czvf artifact.tar.gz .
             mkdir -p ./ansible/roles/deploy/tasks/
