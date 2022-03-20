@@ -208,7 +208,8 @@ jobs:
           fingerprints:
             - '04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a'
       - attach_workspace:
-          at: ~/
+          at: .circleci/ansible
+      - dependencies
       - run:
           name: Configuring server
           command: |
@@ -220,9 +221,8 @@ jobs:
       - run:
           name: Configure server
           command: |
-            cat ~/project/.circleci/ansible/inventory.txt
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/configure-server.yml           
+            cd .circleci/ansible/
+            ansible-playbook configure-server.yml
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
