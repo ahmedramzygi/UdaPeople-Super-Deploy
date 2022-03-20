@@ -244,8 +244,7 @@ jobs:
             cd backend
             npm install
             npm run build
-            npm run migrations
-
+            npm run migrations > migrations_dump.txt
       - run:
           name: Sending migration status to thisdb.com
           command: |
@@ -330,8 +329,7 @@ jobs:
       - run:
           name: Deploying backend
           command: |
-            cd ansible
-            ansible-playbook deploy-backend.yml
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/configure-server.yml 
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   smoke_test_backend:
