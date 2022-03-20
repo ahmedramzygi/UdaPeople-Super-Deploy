@@ -327,7 +327,7 @@ jobs:
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-  smoke-test_backend:
+  smoke_test_backend:
     docker:
       - image: python:3.7-alpine3.11
     steps:
@@ -432,9 +432,9 @@ workflows:
       - deploy-backend:
             requires: [configure-infrastructure]
           # requires: [run-migrations]
-      - smoke-test_backend:
+      - smoke_test_backend:
           requires: [deploy-backend]  
-      - smoke-test_frontend:
+      - smoke_test_frontend:
           requires: [deploy-frontend]
         # - cloudfront-update:
       #     requires: [smoke-test]
