@@ -152,10 +152,13 @@ jobs:
 
   deploy-infrastructure:
     docker:
-      - image: cimg/base:2021.04
+      - image: amazon/aws-cli
     steps:
       - checkout
-      - dependencies
+      - run:
+          name: Install tar utility
+          command: |
+            yum install -y tar gzip
       # Checkout code from git
       - run:
           name: Ensure back-end infrastructure exists
@@ -176,39 +179,54 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text >> .circleci/ansible/inventory.txt
+            aws cloudformation describe-stacks \
+            --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --query "Stacks[0].Outputs[0].OutputValue" \
+            --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: .circleci/ansible
+          root: ~/
           paths:
-            - inventory.txt
+            - project/.circleci/ansible/inventory.txt
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
   configure-infrastructure:
     docker:
-      - image: cimg/base:2021.04
+      - image: python:3.7-alpine3.11
+        environment:
+          NODE_ENV: "local"
+          VERSION: "1"
+          ENVIRONMENT: "production"
+          TYPEORM_CONNECTION: $TYPEORM_CONNECTION
+          TYPEORM_HOST: $TYPEORM_HOST
+          TYPEORM_USERNAME: $TYPEORM_USERNAME
+          TYPEORM_PASSWORD: $TYPEORM_PASSWORD
+          TYPEORM_DATABASE: $TYPEORM_DATABASE
+          TYPEORM_PORT: $TYPEORM_PORT
+          TYPEORM_ENTITIES: $TYPEORM_ENTITIES     
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["8a:95:e4:6d:e0:1c:c6:2c:da:2a:ea:36:6b:fc:69:9f"]
+          fingerprints:
+            - '04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a'
       - attach_workspace:
-          at: .circleci/ansible
-      - dependencies
+          at: ~/
+      - run:
+          name: Configuring server
+          command: |
+            apk add curl
+            apk add --upgrade bash
+            apk add --update ansible
+            apk add openssh-client
+            pip3 install awscli
       - run:
           name: Configure server
           command: |
-            cd .circleci/ansible/
-            ansible-playbook configure-server.yml
-      # Here's where you will add some code to rollback on failure
+            cat ~/project/.circleci/ansible/inventory.txt
+            export ANSIBLE_HOST_KEY_CHECKING=False
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/configure-server.yml           
       - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
-
-
-
-
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
   run-migrations:
     docker:
@@ -222,10 +240,8 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            cat .env
             npm install
-            npm run build
-            npm run migrations
+            npm run migrations > migrations_dump.txt
       - run:
           name: Sending migration status to thisdb.com
           command: |
@@ -308,8 +324,7 @@ jobs:
       - run:
           name: Deploying backend
           command: |
-            cd ansible
-            ansible-playbook deploy-backend.yml
+            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   smoke_test_backend:
@@ -411,17 +426,20 @@ workflows:
       - configure-infrastructure:
           requires: [deploy-infrastructure]
 
-      - run-migrations:
-          requires: [configure-infrastructure]
-
+          # requires: [configure-infrastructure]
       - deploy-frontend:
             requires: [configure-infrastructure]
-
+          # requires: [run-migrations]
       - deploy-backend:
             requires: [configure-infrastructure]
           # requires: [run-migrations]
-      - smoke_test_backend:
-          requires: [deploy-backend]  
       - smoke_test_frontend:
           requires: [deploy-frontend]
-        # - cloudfront-update:
+      - smoke_test_backend:
+          requires: [deploy-backend]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
+      # - cloudfront-update:
+      #     requires: [smoke-test]
+      # - cleanup:
+      #     requires: [cloudfront-update]
