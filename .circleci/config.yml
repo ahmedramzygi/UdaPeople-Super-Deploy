@@ -240,8 +240,8 @@ jobs:
           name: Run migrations
           command: |
             cd backend
+            npm install
             npm run migrations > migrations_dump.txt
-            cat migrations_dump.txt
       - run:
           name: Sending migration status to thisdb.com
           command: |
@@ -388,28 +388,28 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
-      - deploy-infrastructure:
-          requires: [build-backend]
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
+      # - deploy-infrastructure:
+      #     requires: [build-backend]
 
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
-      - deploy-frontend:
-            requires: [configure-infrastructure]
-          # requires: [run-migrations]
-      - deploy-backend:
-            requires: [configure-infrastructure]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      - run-migrations
+          # requires: [configure-infrastructure]
+      # - deploy-frontend:
+      #       requires: [configure-infrastructure]
+      #     # requires: [run-migrations]
+      # - deploy-backend:
+      #       requires: [configure-infrastructure]
           # requires: [run-migrations]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
