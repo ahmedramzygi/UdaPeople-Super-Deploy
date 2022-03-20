@@ -228,6 +228,8 @@ jobs:
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
+
+
   run-migrations:
     docker:
       - image: sleavely/node-awscli:14.x
@@ -240,8 +242,10 @@ jobs:
           name: Run migrations
           command: |
             cd backend
+            cat .env
             npm install
-            npm run migrations > migrations_dump.txt
+            npm run build
+            npm run migrations
       - run:
           name: Sending migration status to thisdb.com
           command: |
@@ -255,6 +259,8 @@ jobs:
                 -H "X-Api-Key: ${THISDB_API_KEY}" \
                 -d "0"
             fi
+  #     - destroy-environment:
+  #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
   #     - destroy-environment:
   #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 
@@ -324,7 +330,8 @@ jobs:
       - run:
           name: Deploying backend
           command: |
-            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+            cd ansible
+            ansible-playbook deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   smoke_test_backend:
@@ -425,6 +432,8 @@ workflows:
 
       - configure-infrastructure:
           requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
 
           # requires: [configure-infrastructure]
       - deploy-frontend:
