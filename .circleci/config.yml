@@ -192,7 +192,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: python:3.7-alpine3.11        
+      - image: cimg/base:2021.04
     steps:
       - checkout
       - add_ssh_keys:
@@ -208,6 +208,10 @@ jobs:
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
+
+
+
+
 
   run-migrations:
     docker:
