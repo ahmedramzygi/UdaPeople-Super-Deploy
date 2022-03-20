@@ -342,7 +342,7 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            BACKEND_IP=34.208.105.253
+            BACKEND_IP=$(aws cloudformation describe-stacks --stack-name udapeople-backend-"${CIRCLE_WORKFLOW_ID:0:7}" --query "Stacks[0].Outputs[0].OutputValue" --output text)
             API_URL="http://${BACKEND_IP}:3030"
             if curl "${API_URL}/api/status" | grep "ok"
             then
@@ -363,7 +363,7 @@ jobs:
       - run:
           name: Package frontend app
           command: |
-            URL="http://udapeople-f308c95.s3-website-us-west-2.amazonaws.com"             
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
             if curl -s ${URL} | grep "Welcome"
             then
               exit 0
@@ -410,33 +410,33 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [build-backend]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [build-backend]
 
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      - smoke_test_frontend
-      - smoke-test_backend
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
           # requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #       requires: [configure-infrastructure]
-      #     # requires: [run-migrations]
-      # - deploy-backend:
-      #       requires: [configure-infrastructure]
+      - deploy-frontend:
+            requires: [configure-infrastructure]
           # requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
+      - deploy-backend:
+            requires: [configure-infrastructure]
+          # requires: [run-migrations]
+      - smoke-test_backend:
+          requires: [deploy-backend]  
+      - smoke-test_frontend:
+          requires: [deploy-frontend]
+        # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
       #     requires: [cloudfront-update]
