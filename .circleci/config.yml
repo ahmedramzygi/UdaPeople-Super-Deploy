@@ -228,40 +228,39 @@ jobs:
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
-  run-migrations:
-    docker:
-      - image: sleavely/node-awscli:14.x
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - build-backend
-      - run:
-          name: Run migrations
-          command: |
-            cd backend
-            cat .env
-            npm i
-            npm run build
-            npm run migrations
-      - run:
-          name: Sending migration status to thisdb.com
-          command: |
-            if grep -q "has been executed successfully" ./backend/migrations_dump.txt
-            then
-              curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
-                -H "X-Api-Key: ${THISDB_API_KEY}" \
-                -d "1"
-            else
-              curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
-                -H "X-Api-Key: ${THISDB_API_KEY}" \
-                -d "0"
-            fi
-      - destroy-environment:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+  # run-migrations:
+  #   docker:
+  #     - image: sleavely/node-awscli:14.x
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys:
+  #           - build-backend
+  #     - run:
+  #         name: Run migrations
+  #         command: |
+  #           cd backend
+  #           npm i
+  #           npm run build
+  #           npm run migrations
+  #     - run:
+  #         name: Sending migration status to thisdb.com
+  #         command: |
+  #           if grep -q "has been executed successfully" ./backend/migrations_dump.txt
+  #           then
+  #             curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
+  #               -H "X-Api-Key: ${THISDB_API_KEY}" \
+  #               -d "1"
+  #           else
+  #             curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
+  #               -H "X-Api-Key: ${THISDB_API_KEY}" \
+  #               -d "0"
+  #           fi
+  #     - destroy-environment:
+  #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: cimg/node:13.14.0
     steps:
       - checkout
       - run:
@@ -296,7 +295,7 @@ jobs:
                     
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/node:13.14.0
         environment:
           NODE_ENV: "local"
           VERSION: "1"
