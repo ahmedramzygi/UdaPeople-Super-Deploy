@@ -309,7 +309,7 @@ jobs:
       - run:
           name: Deploying backend
           command: |
-            cd ansible/
+            cd ansible
             ansible-playbook deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
