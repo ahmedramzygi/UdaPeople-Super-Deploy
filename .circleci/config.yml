@@ -258,19 +258,16 @@ jobs:
   #           fi
   #     - destroy-environment:
   #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+
   deploy-frontend:
     docker:
       - image: cimg/node:13.14.0
     steps:
       - checkout
-      - run:
-          name: Install tar utility
-          command: |
-            yum install -y tar gzip
-
       - restore_cache:
           keys:
             - build-frontend
+      - install-dependencies
       - run:
           name: Get backend url
           command: |
@@ -287,12 +284,16 @@ jobs:
             npm i
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
-            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            aws s3 cp dist "s3://udapeople-798534a" --recursive
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   #     # Here's where you will add some code to rollback on failure
   #     - destroy-environment:
   #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 #       # Here's where you will add some code to rollback on failure      
-                    
+
+
   deploy-backend:
     docker:
       - image: cimg/node:13.14.0
@@ -309,16 +310,11 @@ jobs:
           TYPEORM_ENTITIES: $TYPEORM_ENTITIES
     steps:
       - checkout
-      - add_ssh_keys:
-          fingerprints: ["eb:8c:c3:a9:4b:36:3f:c7:69:df:e2:36:d3:22:f5:ed"]
       - attach_workspace:
-          at: /root
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update ansible rsync 
-            apk add curl
-            pip3 install awscli
+          at: .circleci/ansible
+      - add_ssh_keys:
+          fingerprints: ["8a:95:e4:6d:e0:1c:c6:2c:da:2a:ea:36:6b:fc:69:9f"]
+      - install-dependencies
       - run:
           name: Deploy backend
           command: |
@@ -332,8 +328,6 @@ jobs:
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-          
-
 #   smoke-test:
 #     docker:
 #       # Lightweight Docker image 
