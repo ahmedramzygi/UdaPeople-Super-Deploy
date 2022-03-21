@@ -211,14 +211,6 @@ jobs:
           at: .circleci/ansible
       - dependencies
       - run:
-          name: Configuring server
-          command: |
-            apk add curl
-            apk add --upgrade bash
-            apk add --update ansible
-            apk add openssh-client
-            pip3 install awscli
-      - run:
           name: Configure server
           command: |
             cd .circleci/ansible/
