@@ -177,10 +177,10 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text >> .circleci/ansible/inventory.txt
+            aws cloudformation describe-stacks \
+            --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --query "Stacks[0].Outputs[0].OutputValue" \
+            --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: .circleci/ansible
           paths:
@@ -190,18 +190,7 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: cimg/base:2021.04     
-        environment:
-          NODE_ENV: "local"
-          VERSION: "1"
-          ENVIRONMENT: "production"
-          TYPEORM_CONNECTION: $TYPEORM_CONNECTION
-          TYPEORM_HOST: $TYPEORM_HOST
-          TYPEORM_USERNAME: $TYPEORM_USERNAME
-          TYPEORM_PASSWORD: $TYPEORM_PASSWORD
-          TYPEORM_DATABASE: $TYPEORM_DATABASE
-          TYPEORM_PORT: $TYPEORM_PORT
-          TYPEORM_ENTITIES: $TYPEORM_ENTITIES     
+      - image: cimg/base:2021.04          
     steps:
       - checkout
       - add_ssh_keys:
