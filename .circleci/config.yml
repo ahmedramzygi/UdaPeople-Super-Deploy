@@ -209,10 +209,9 @@ jobs:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
 
-
   run-migrations:
     docker:
-      - image: cimg/node:13.14.0
+      - image: sleavely/node-awscli:14.x
     steps:
       - checkout
       - restore_cache:
@@ -224,7 +223,6 @@ jobs:
             cd backend
             npm install
             npm run migrations > migrations_dump.txt
-            cat migrations_dump.txt
       - run:
           name: Sending migration status to thisdb.com
           command: |
@@ -302,14 +300,10 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            cd backend
-            npm i
-            npm run build
-            cd ..
+            printenv | grep "TYPEORM" > ./backend/.env
             tar -C backend -czvf artifact.tar.gz .
-            cd .circleci/ansible
-            cat inventory.txt
-            ansible-playbook -i inventory.txt deploy-backend.yml
+            mkdir -p ./ansible/roles/deploy/tasks/
+            mv artifact.tar.gz ansible/roles/deploy/tasks/
       - run:
           name: Deploying backend
           command: |
@@ -417,15 +411,13 @@ workflows:
       - configure-infrastructure:
           requires: [deploy-infrastructure]
 
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-
-          # requires: [configure-infrastructure]
-      - deploy-frontend:
+      - run-migrations:
           requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
 
       - deploy-backend:
-            requires: [configure-infrastructure]
+            requires: [run-migrations]
       #     requires: [run-migrations]
           # requires: [run-migrations]
       - smoke_test_frontend:
