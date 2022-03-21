@@ -278,7 +278,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/node:13.14.0
         environment:
           NODE_ENV: "local"
           VERSION: "1"
@@ -292,16 +292,11 @@ jobs:
           TYPEORM_ENTITIES: $TYPEORM_ENTITIES
     steps:
       - checkout
+      - attach_workspace:
+          at: .circleci/ansible
       - add_ssh_keys:
           fingerprints: ["04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a"]
-      - attach_workspace:
-          at: /root
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update ansible rsync 
-            apk add curl
-            pip3 install awscli
+      - dependencies
       - run:
           name: Deploy backend
           command: |
@@ -312,10 +307,8 @@ jobs:
       - run:
           name: Deploying backend
           command: |
-            ls /root
-            ls /root/project/backend/
-            cat ~/project/.circleci/ansible/inventory.txt
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+
 
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
