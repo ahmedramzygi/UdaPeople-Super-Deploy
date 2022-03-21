@@ -1,6 +1,6 @@
 
 ---
-- name: 'Deploy backend play.'
+- name: 'Deploying the backend play.'
   hosts: web
   gather_facts: no
   roles:
