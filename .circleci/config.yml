@@ -302,16 +302,20 @@ jobs:
       - run:
           name: Deploy backend
           command: |
-            printenv | grep "TYPEORM" > ./backend/.env
+            cd backend
+            npm i
+            npm run build
+            cd ..
             tar -C backend -czvf artifact.tar.gz .
-            mkdir -p ./ansible/roles/deploy/tasks/
-            mv artifact.tar.gz ansible/roles/deploy/tasks/
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml
       - run:
           name: Deploying backend
           command: |
-            cat ~/project/.circleci/ansible/inventory.txt
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+            cd ansible
+            ansible-playbook deploy-backend.yml
+
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   smoke_test_backend:
