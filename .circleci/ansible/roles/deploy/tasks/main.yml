@@ -1,15 +1,40 @@
 ---
-- name: Unzip artifact
-  unarchive:
-    vars:
-    - ansible_python_interpreter: /usr/bin/python3
-    - ansible_host_key_checking: false
-    - ansible_stdout_callback: yaml
-    src: artifact.tar.gz
-    dest: ~/
+  - name: install rsync on the ansible controller
+    become: true
+    connection: local
+    package:
+      name: 
+        - openssh
+        - rsync
+      state: present
+      
+  - name: "move files to server"
+    become: true
+    synchronize:
+      src: /root/project/backend/dist
+      dest: ./udapeople
+      recursive: true
 
-- name: Start backend
-  shell: |
-    npm run build
-    pm2 stop default
-    pm2 start npm -- start
+  - name: "move node modules"
+    become: true
+    synchronize:
+      src: /root/project/backend/node_modules
+      dest: ./udapeople
+      recursive: true
+
+  - name: "run server"
+    become: true
+    command: pm2 start -f ./main.js
+    args:
+      chdir: ./udapeople/dist
+    environment:
+      ENVIRONMENT: production
+      TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION') }}"
+      TYPEORM_MIGRATIONS_DIR: "./migrations"
+      TYPEORM_MIGRATIONS: "./migrations/*.js"
+      TYPEORM_ENTITIES: "./modules/domain/**/*.entity.js"
+      TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST') }}"
+      TYPEORM_PORT: "{{ lookup('env', 'TYPEORM_PORT') }}"
+      TYPEORM_USERNAME: "{{ lookup('env', 'TYPEORM_USERNAME') }}"
+      TYPEORM_PASSWORD: "{{ lookup('env', 'TYPEORM_PASSWORD') }}"
+      TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE') }}"

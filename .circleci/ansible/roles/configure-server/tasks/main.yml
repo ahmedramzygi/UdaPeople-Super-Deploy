@@ -1,37 +1,36 @@
 ---
-- name: Update packages.
+- name: "update apt"
   become: true
   apt:
     update_cache: yes
 
-- name: Install prerequisites
+- name: "upgrade apt packages"
   become: true
   apt:
-    name:
-      - apt-transport-https
-      - gcc
-      - g++
-      - make
-      - net-tools
-    state: present
+    upgrade: "yes"
 
-- name: Add nodejs apt key
-  shell: curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
-
-- name: Install nodejs 13
+- name: "install dependencies."
   become: true
   apt:
-    name: nodejs
-    state: present
+    name: ["nodejs", "npm"]
+    state: latest
+    update_cache: yes
 
-- name: Install pm2
+- name: "install n"
   become: true
   npm:
-    name: pm2
-    state: present
+    name: n
     global: yes
     production: yes
 
-- name: Remove dependencies that are no longer required
+- name: "install nodejs 12.20.1"
   become: true
-  apt:
+  shell: n 12.20.1
+
+- name: "install pm2"
+  become: true
+  npm:
+    name: pm2
+    global: yes
+    production: yes
+    state: present

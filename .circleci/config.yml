@@ -80,11 +80,18 @@ jobs:
           keys:
             - build-backend
       - run:
-          name: Installing dependencies
+          name: Back-end build
+          working_directory: ./backend
           command: |
-            cd backend
-            npm install
+            npm i
             npm run build
+            cp .env dist/.env
+            pwd && ls -al
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/backend/dist
+            - project/backend/node_modules
       - save_cache:
           key: build-backend
           paths:
@@ -182,23 +189,41 @@ jobs:
             --query "Stacks[0].Outputs[0].OutputValue" \
             --output text >> .circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: .circleci/ansible
+          root: ~/
           paths:
-            - inventory.txt
+            - project/.circleci/ansible/inventory.txt
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
   configure-infrastructure:
     docker:
-      - image: cimg/base:2021.04          
+      - image: python:3.7-alpine3.11
+        environment:
+          NODE_ENV: "local"
+          VERSION: "1"
+          ENVIRONMENT: "production"
+          TYPEORM_CONNECTION: $TYPEORM_CONNECTION
+          TYPEORM_HOST: $TYPEORM_HOST
+          TYPEORM_USERNAME: $TYPEORM_USERNAME
+          TYPEORM_PASSWORD: $TYPEORM_PASSWORD
+          TYPEORM_DATABASE: $TYPEORM_DATABASE
+          TYPEORM_PORT: $TYPEORM_PORT
+          TYPEORM_ENTITIES: $TYPEORM_ENTITIES
     steps:
       - checkout
+      # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints:
-            - '04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a'
+          fingerprints: ["04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a"]
       - attach_workspace:
-          at: .circleci/ansible
-      - dependencies
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add curl
+            apk add --upgrade bash
+            apk add --update ansible
+            apk add openssh-client
+            pip3 install awscli
       - run:
           name: Configure server
           command: |
@@ -221,12 +246,14 @@ jobs:
           name: Run migrations
           command: |
             cd backend
-            npm install
-            npm run migrations > migrations_dump.txt
+            cat .env
+            npm i
+            npm run build
+            npm run migrations
       - run:
           name: Sending migration status to thisdb.com
           command: |
-            if grep -q "has been executed successfully" ./backend/migrations_dump.txt
+            if grep -q "has been executed successfully"  ./migration_status.txt   
             then
               curl https://kvdb.io/Mju4q7XrqTgEaJ8J2CCvS//migration_${CIRCLE_WORKFLOW_ID:0:7} \
                 -H "X-Api-Key: ${THISDB_API_KEY}" \
@@ -278,7 +305,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: cimg/node:13.14.0
+      - image: python:3.7-alpine3.11
         environment:
           NODE_ENV: "local"
           VERSION: "1"
@@ -289,29 +316,33 @@ jobs:
           TYPEORM_PASSWORD: $TYPEORM_PASSWORD
           TYPEORM_DATABASE: $TYPEORM_DATABASE
           TYPEORM_PORT: $TYPEORM_PORT
-          TYPEORM_ENTITIES: $TYPEORM_ENTITIES
+          TYPEORM_ENTITIES: $TYPEORM_ENTITIES       
     steps:
       - checkout
-      - attach_workspace:
-          at: .circleci/ansible
       - add_ssh_keys:
           fingerprints: ["04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a"]
-      - dependencies
+      - attach_workspace: 
+          at: /root 
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible rsync 
+            apk add curl
+            pip3 install awscli          
       - run:
           name: Deploy backend
           command: |
-            printenv | grep "TYPEORM" > ./backend/.env
-            tar -C backend -czvf artifact.tar.gz .
-            mkdir -p ./ansible/roles/deploy/tasks/
-            mv artifact.tar.gz ansible/roles/deploy/tasks/
-      - run:
-          name: Deploying backend
-          command: |
+            ls /root
+            ls /root/project/backend/
+            cat ~/project/.circleci/ansible/inventory.txt
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
-
 
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+            # printenv | grep "TYPEORM" > ./backend/.env
+            # tar -C backend -czvf artifact.tar.gz .
+            # mkdir -p ./ansible/roles/deploy/tasks/
+            # mv artifact.tar.gz ansible/roles/deploy/tasks/
   smoke_test_backend:
     docker:
       - image: python:3.7-alpine3.11
@@ -395,36 +426,36 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
+      - build-frontend
       - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      - deploy-infrastructure:
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
           requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
 
       - configure-infrastructure:
           requires: [deploy-infrastructure]
 
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
 
       #     # requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
+      - deploy-frontend:
+          requires: [run-migrations]
 
       - deploy-backend:
           requires: [configure-infrastructure]
             # requires: [run-migrations]
       #     requires: [run-migrations]
           # requires: [run-migrations]
-        # - smoke_test_frontend:
-        #     requires: [deploy-frontend]
+      - smoke_test_frontend:
+            requires: [deploy-frontend]
       - smoke_test_backend:
           requires: [deploy-backend]
       # - smoke-test:
