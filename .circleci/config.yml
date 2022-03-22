@@ -249,13 +249,13 @@ jobs:
             cat .env
             npm i
             npm run build
-            npm run migrations
+            npm run migrations > migrations_dump.txt
+            cat migrations_dump.txt
+            
       - run:
           name: Sending migration status to kvdb
           command: |
-            echo "has been done successfully" > ./migration_status.txt
-            pwd && ls -al
-            if grep -q "has been executed successfully"  ./migration_status.txt   
+            if grep -q "has been executed successfully"  ./backend/migrations_dump.txt   
             then
               curl https://kvdb.io/LHFkzdfqGQiT5AocazCCLL//migration_${CIRCLE_WORKFLOW_ID:0:7} \
                 -H "X-Api-Key: ${THISDB_API_KEY}" \
