@@ -307,7 +307,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/node:13.14.0
         environment:
           NODE_ENV: "local"
           VERSION: "1"
@@ -325,15 +325,7 @@ jobs:
           fingerprints: ["04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a"]
       - attach_workspace: 
           at: /root 
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update ansible rsync 
-            apk add curl
-            pip3 install awscli tar gzip
-            
-            # mkdir -p ./ansible/roles/deploy/tasks/
-            # mv artifact.tar.gz ansible/roles/deploy/tasks/    
+      - dependencies   
       - run:
           name: Deploy backend
           command: |
