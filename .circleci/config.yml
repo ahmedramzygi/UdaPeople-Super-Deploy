@@ -352,8 +352,7 @@ jobs:
       - run:
           name: Checking backend
           command: |
-            BACKEND_IP=$(aws cloudformation describe-stacks --stack-name udapeople-backend-"${CIRCLE_WORKFLOW_ID:0:7}" --query "Stacks[0].Outputs[0].OutputValue" --output text)
-            API_URL="http://${BACKEND_IP}:3030"
+            API_URL="http://35.164.135.48:3030"
             if curl "${API_URL}/api/status" | grep "ok"
             then
               exit 0
@@ -363,7 +362,7 @@ jobs:
       - run:
           name: Checking frontend
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.eu-central-1.amazonaws.com"            
+            URL="http://udapeople-fd00fc4.s3-website-us-west-2.amazonaws.com"            
             if curl -s ${URL} | grep "Welcome"
             then
               exit 0
