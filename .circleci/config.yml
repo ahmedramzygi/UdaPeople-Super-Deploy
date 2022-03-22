@@ -343,23 +343,28 @@ jobs:
             # tar -C backend -czvf artifact.tar.gz .
             # mkdir -p ./ansible/roles/deploy/tasks/
             # mv artifact.tar.gz ansible/roles/deploy/tasks/
-  smoke_test_backend:
+  smoke-test:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/node:13.14.0
     steps:
       - checkout
-      - attach_workspace:
-          at: /root
+      - dependencies
       - run:
-          name: Install dependencies
+          name: Checking backend
           command: |
-            apk add --update curl
-            pip install awscli
-      - run:
-          name: Backend smoke test.
-          command: |
-            API_URL="http://35.164.135.48:3030"
+            BACKEND_IP=$(aws cloudformation describe-stacks --stack-name udapeople-backend-"${CIRCLE_WORKFLOW_ID:0:7}" --query "Stacks[0].Outputs[0].OutputValue" --output text)
+            API_URL="http://${BACKEND_IP}:3030"
             if curl "${API_URL}/api/status" | grep "ok"
+            then
+              exit 0
+            else
+              exit 1
+            fi
+      - run:
+          name: Checking frontend
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website.eu-central-1.amazonaws.com"            
+            if curl -s ${URL} | grep "Welcome"
             then
               exit 0
             else
