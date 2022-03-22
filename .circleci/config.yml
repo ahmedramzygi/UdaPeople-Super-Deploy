@@ -358,7 +358,7 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            API_URL="http://${35.164.135.48}:3030"
+            API_URL="http://35.164.135.48:3030"
             if curl "${API_URL}/api/status" | grep "ok"
             then
               exit 0
