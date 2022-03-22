@@ -308,7 +308,7 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: cimg/node:13.14.0
+      - image: python:3.7-alpine3.11
         environment:
           NODE_ENV: "local"
           VERSION: "1"
