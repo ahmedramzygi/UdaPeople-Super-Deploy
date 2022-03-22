@@ -358,7 +358,6 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            BACKEND_IP=$(aws cloudformation describe-stacks --stack-name udapeople-backend-"${CIRCLE_WORKFLOW_ID:0:7}" --query "Stacks[0].Outputs[0].OutputValue" --output text)
             API_URL="http://${35.164.135.48}:3030"
             if curl "${API_URL}/api/status" | grep "ok"
             then
