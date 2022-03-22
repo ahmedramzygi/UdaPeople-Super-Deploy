@@ -10,12 +10,11 @@
         cd /home/ubuntu/
         tar xvzf artifact.tar.gz -C .
 
-
   - name: "run server"
     become: true
     shell : |
         cd /home/ubuntu/
-        pm2 start npm --start
+        pm2 start npm -- start
     environment:
       ENVIRONMENT: production
       TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION') }}"
