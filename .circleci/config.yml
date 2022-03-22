@@ -469,7 +469,7 @@ workflows:
       #     requires: [run-migrations]
           # requires: [run-migrations]
       - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
+          requires: [deploy-backend]
       # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
