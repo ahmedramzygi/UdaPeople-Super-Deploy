@@ -234,6 +234,7 @@ jobs:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
 
+
   run-migrations:
     docker:
       - image: sleavely/node-awscli:14.x
@@ -325,12 +326,22 @@ jobs:
           fingerprints: ["04:21:ed:89:b7:0c:af:ca:6c:7d:4e:64:48:58:06:3a"]
       - attach_workspace: 
           at: /root 
-      - dependencies   
+      - restore_cache:
+          keys:
+            - build-backend
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible nodejs npm tar gzip
+         
+            # mkdir -p ./ansible/roles/deploy/tasks/
+            # mv artifact.tar.gz ansible/roles/deploy/tasks/    
       - run:
           name: Deploy backend
           command: |
             cd backend
             npm install
+            npm run build
             cd ..
             tar -C backend -czvf artifact.tar.gz .
             cat ~/project/.circleci/ansible/inventory.txt
