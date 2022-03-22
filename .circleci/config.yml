@@ -330,12 +330,17 @@ jobs:
           command: |
             apk add --update ansible rsync 
             apk add curl
-            pip3 install awscli          
+            pip3 install awscli tar gzip
+            
+            # mkdir -p ./ansible/roles/deploy/tasks/
+            # mv artifact.tar.gz ansible/roles/deploy/tasks/    
       - run:
           name: Deploy backend
           command: |
-            ls /root
-            ls /root/project/backend/
+            cd backend
+            npm install
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
             cat ~/project/.circleci/ansible/inventory.txt
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
 
@@ -434,18 +439,18 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-frontend
+      # - build-frontend
       - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
       - deploy-infrastructure:
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          requires: [build-backend]
 
       - configure-infrastructure:
           requires: [deploy-infrastructure]
@@ -454,8 +459,8 @@ workflows:
           requires: [configure-infrastructure]
 
       #     # requires: [configure-infrastructure]
-      - deploy-frontend:
-          requires: [run-migrations]
+      # - deploy-frontend:
+      #     requires: [run-migrations]
 
       - deploy-backend:
           requires: [run-migrations]

@@ -1,32 +1,22 @@
 ---
-  - name: install rsync on the ansible controller
+  - name: Copy files
     become: true
-    connection: local
-    package:
-      name: 
-        - openssh
-        - rsync
-      state: present
-      
-  - name: "move files to server"
+    copy:
+      src: /root/artifact.tar.gz
+      dest: /home/ubuntu/artifact.tar.gz
+      become: true
+  - name: Unarchive
     become: true
-    synchronize:
-      src: /root/project/backend/dist
-      dest: ./udapeople
-      recursive: true
+    shell : |
+        cd /home/ubuntu/
+        tar xvzf artifact.tar.gz -C .
 
-  - name: "move node modules"
-    become: true
-    synchronize:
-      src: /root/project/backend/node_modules
-      dest: ./udapeople
-      recursive: true
 
   - name: "run server"
     become: true
-    command: pm2 start -f ./main.js
-    args:
-      chdir: ./udapeople/dist
+    shell : |
+        cd /home/ubuntu/
+        pm2 start npm --start
     environment:
       ENVIRONMENT: production
       TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION') }}"
