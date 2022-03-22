@@ -460,7 +460,7 @@ workflows:
       #     # requires: [run-migrations]
       # - smoke_test_frontend:
       #       requires: [deploy-frontend]
-      - smoke_test_backend
+      - smoke-test
           # requires: [deploy-backend]
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
