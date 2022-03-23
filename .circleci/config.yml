@@ -409,10 +409,10 @@ jobs:
           name: Updating cloudfront distribution
           command: |
             aws cloudformation deploy \
-              --stack-name newIntialStack \
-              --template-file .circleci/files/cloudfront.yml \
-               --tags project=udapeople-aeramzy \
-              --parameter-overrides WorkflowID=eea550d
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name InitialStack \
+            --parameter-overrides WorkflowID="udapeople-eea550d" \
+            --tags project=udapeople
 
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
