@@ -355,29 +355,45 @@ jobs:
             # mv artifact.tar.gz ansible/roles/deploy/tasks/
   smoke-test:
     docker:
-      - image: cimg/node:13.14.0
+      - image: alpine:latest
     steps:
       - checkout
       - attach_workspace: 
-          at: ~/      
-      - dependencies
+          at: ~/ 
+      - run:
+          name: ​Install dependencies 
+          command: |
+            apk add --no-cache curl npm
+            python3 \
+            && pip3 install --upgrade pip
+            && pip3 install --no-cache-dir
+            awscli \
+            && rm -rf /var/cache/apk/* 
       - run:
           name: Checking backend
           command: |
-            npm install
-            npm run build
-            BACKEND_IP=$(aws cloudformation describe-stacks --stack-name udapeople-backend-"${CIRCLE_WORKFLOW_ID:0:7}" --query "Stacks[0].Outputs[0].OutputValue" --output text)
-            API_URL="http://${BACKEND_IP}:3030"
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters "Name=tag:project,Values=udapeople" --output text)
+      - run:
+          name: Checking backend
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters "Name=tag:project,Values=udapeople" --output text)           
+      - run:
+          name: Backend smoke test
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters "Name=tag:project,Values=udapeople" --output text) 
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}" 
             if curl "${API_URL}/api/status" | grep "ok"
             then
-              exit 0
+              return 0
             else
-              exit 1
+              return 1
             fi
       - run:
-          name: Checking frontend
+          name: Smoke test for front end
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"            
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
+            echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
               exit 0
