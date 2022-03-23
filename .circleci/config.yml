@@ -412,7 +412,7 @@ jobs:
               --stack-name udapeople-cloudfront \
               --template-file .circleci/files/cloudfront.yml \
                --tags project=udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
-              --parameter-overrides OldWorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
 
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
