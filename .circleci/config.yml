@@ -361,7 +361,7 @@ jobs:
       - attach_workspace: 
           at: ~/ 
       - run:
-          name: ​Install dependencies 
+          name: Install dependencies 
           command: |
             apk add --no-cache curl npm
             python3 \
