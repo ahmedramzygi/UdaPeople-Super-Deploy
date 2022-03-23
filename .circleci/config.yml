@@ -398,6 +398,12 @@ jobs:
       - checkout
       - dependencies
       - run:
+          name: get old workflow for clean
+          command: |
+            WorkflowID=$(aws cloudformation \
+            list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+            --no-paginate --output text)
+      - run:
           name: Updating cloudfront distribution
           command: |
             aws cloudformation deploy \
@@ -434,36 +440,36 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
-      - deploy-infrastructure:
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
+      # - deploy-infrastructure:
+      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
 
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
 
-      - run-migrations:
-          requires: [configure-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
 
-      - deploy-frontend:
-          requires: [run-migrations]
+      # - deploy-frontend:
+      #     requires: [run-migrations]
 
-      - deploy-backend:
-          requires: [run-migrations]
-      - smoke-test-backend:
-          requires: [deploy-backend]
-      - smoke-test-frontend:
-          requires: [deploy-frontend]
+      # - deploy-backend:
+      #     requires: [run-migrations]
+      # - smoke-test-backend:
+      #     requires: [deploy-backend]
+      # - smoke-test-frontend:
+      #     requires: [deploy-frontend]
       
-      - cloudfront-update:
-          requires: [smoke-test-backend,smoke-test-frontend]
+      - cloudfront-update
+          # requires: [smoke-test-backend,smoke-test-frontend]
       # - cleanup:
       #     requires: [cloudfront-update]
