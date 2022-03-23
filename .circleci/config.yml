@@ -362,17 +362,7 @@ jobs:
              BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
              API_URL="http://${BACKEND_IP}:3030"
              curl "${API_URL}/api/status"
-      - run:
-          name: Smoke test for front end
-          command: |
-            URL="http://udapeople-f7e30c9.s3-website-us-west-2.amazonaws.com/"             
-            echo ${URL} 
-            if curl -s ${URL} | grep "Welcome"
-            then
-              exit 0
-            else
-              exit 1
-            fi
+
   smoke-test-frontend:
     docker:
       - image: python:3.7-alpine3.11
@@ -388,14 +378,14 @@ jobs:
       - run:
           name: Smoke test for front end
           command: |
-            URL="http://udapeople-f7e30c9.s3-website-us-west-2.amazonaws.com/"             
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
               exit 0
             else
               exit 1
-            fi            
+            fi           
       # - destroy-environment:
       #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
       # - revert-migrations:
