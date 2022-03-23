@@ -368,7 +368,9 @@ jobs:
       - run:
           name: Backend smoke test
           command: |
-            backend_ip=$(aws cloudformation describe-stacks --stack-name udapeople-backend-06bb06d--query "Stacks[0].Outputs[0].OutputValue" --output text)
+            backend_ip=$(aws ec2 describe-instances \
+              --query 'Reservations[*].Instances[*].PublicDnsName' \
+              --output text)
             url=http://$backend_ip:3030/api/status
             curl ${url}
       - run:
