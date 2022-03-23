@@ -424,7 +424,7 @@ jobs:
       - image: cimg/base:2021.04
     steps:
       - checkout
-      - install-dependencies
+      - dependencies
       - run:
           name: Removing old stacks and files
           command: |
