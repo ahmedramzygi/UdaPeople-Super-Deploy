@@ -355,7 +355,7 @@ jobs:
             # mv artifact.tar.gz ansible/roles/deploy/tasks/
   smoke-test:
     docker:
-      - image: alpine:latest
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - attach_workspace:
