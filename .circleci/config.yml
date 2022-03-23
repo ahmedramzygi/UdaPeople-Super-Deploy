@@ -97,7 +97,6 @@ jobs:
   test-backend:
     docker:
       - image: circleci/node:13.8.0
-      # Docker image here
     steps:
       - checkout
       - restore_cache:
@@ -262,10 +261,10 @@ jobs:
                 -H "X-Api-Key: ${THISDB_API_KEY}" \
                 -d "0"
             fi
-  #     - destroy-environment:
-  #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-  #     - destroy-environment:
-  #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      - destroy-environment:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      - revert-migrations:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
   deploy-frontend:
     docker:
@@ -340,13 +339,10 @@ jobs:
             tar -C backend -czvf artifact.tar.gz .
             cat ~/project/.circleci/ansible/inventory.txt
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
-
       - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-            # printenv | grep "TYPEORM" > ./backend/.env
-            # tar -C backend -czvf artifact.tar.gz .
-            # mkdir -p ./ansible/roles/deploy/tasks/
-            # mv artifact.tar.gz ansible/roles/deploy/tasks/
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      - revert-migrations:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
   smoke-test-backend:
     docker:
       - image: python:3.7-alpine3.11
@@ -365,17 +361,7 @@ jobs:
              BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
              API_URL="http://${BACKEND_IP}:3030"
              curl "${API_URL}/api/status"
-      - run:
-          name: Smoke test for front end
-          command: |
-            URL="http://udapeople-f7e30c9.s3-website-us-west-2.amazonaws.com/"             
-            echo ${URL} 
-            if curl -s ${URL} | grep "Welcome"
-            then
-              exit 0
-            else
-              exit 1
-            fi
+
   smoke-test-frontend:
     docker:
       - image: python:3.7-alpine3.11
@@ -391,7 +377,7 @@ jobs:
       - run:
           name: Smoke test for front end
           command: |
-            URL="http://udapeople-f7e30c9.s3-website-us-west-2.amazonaws.com/"             
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
@@ -442,35 +428,35 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
 
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
 
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
 
-      # - deploy-frontend:
-      #     requires: [run-migrations]
+      - deploy-frontend:
+          requires: [run-migrations]
 
-      # - deploy-backend:
-      #     requires: [run-migrations]
-
-            # requires: [run-migrations]
-      #     requires: [run-migrations]
-          # requires: [run-migrations]
-      - smoke-test-frontend
+      - deploy-backend:
+          requires: [run-migrations]
+      - smoke-test-backend:
+          requires: [deploy-backend]
+      - smoke-test-frontend:
+          requires: [deploy-frontend]
+      
             # - cloudfront-update:
       #     requires: [smoke-test]
       # - cleanup:
