@@ -199,7 +199,7 @@ jobs:
     docker:
       - image: python:3.7-alpine3.11
         environment:
-          NODE_ENV: "local"
+          NODE_ENV: "production"
           VERSION: "1"
           ENVIRONMENT: "production"
           TYPEORM_CONNECTION: $TYPEORM_CONNECTION
@@ -310,7 +310,7 @@ jobs:
     docker:
       - image: python:3.7-alpine3.11
         environment:
-          NODE_ENV: "local"
+          NODE_ENV: "production"
           VERSION: "1"
           ENVIRONMENT: "production"
           TYPEORM_CONNECTION: $TYPEORM_CONNECTION
@@ -358,6 +358,8 @@ jobs:
       - image: cimg/node:13.14.0
     steps:
       - checkout
+      - attach_workspace: 
+          at: ~/      
       - dependencies
       - run:
           name: Checking backend
@@ -442,16 +444,16 @@ jobs:
 workflows:
   default:
     jobs:
-      # - build-frontend
+      - build-frontend
       - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
       - deploy-infrastructure:
           requires: [build-backend]
 
