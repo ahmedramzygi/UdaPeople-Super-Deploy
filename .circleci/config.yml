@@ -376,36 +376,17 @@ jobs:
       - run:
           name: Smoke test for front end
           command: |
-            URL="http://udapeople-06bb06d.s3-website-us-west-2.amazonaws.com"             
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
-              exit 1
+              exit 0
             else
               exit 1
             fi
       # - destroy-environment:
       #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
-  # smoke_test_frontend:
-  #   docker:
-  #     - image: cimg/node:13.14.0
-  #   steps:
-  #     - checkout
-  #     - dependencies
-  #     - attach_workspace:
-  #         at: ~/
-  #     - run:
-  #         name: Package frontend app
-  #         command: |
-  #           URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
-  #           if curl -s ${URL} | grep "Welcome"
-  #           then
-  #             exit 0
-  #           else
-  #             exit 1
-  #           fi
-      # - destroy-environment:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
+ 
 #   cloudfront-update:
 #     docker:
 #       # Docker image here that supports AWS CLI
