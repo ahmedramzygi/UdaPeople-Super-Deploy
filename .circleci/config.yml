@@ -33,24 +33,21 @@ commands:
               --stack-name "udapeople-backend-<< parameters.workflow_id >>"
             aws s3 rm "s3://udapeople-<< parameters.workflow_id >>" --recursive
 
-#   revert-migrations:
-#     description: Revert the last migration if successfully run in the current workflow.
-#     parameters:
-#       # Add parameter here     
-#     steps:
-#       - run:
-#           name: Revert migrations
-#           # Add when this will run
-#           command: |
-#             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-#             SUCCESS = 1
-#             if(( $SUCCESS==1 )); 
-#             then
-#             #  cd ~/project/backend
-#             #  npm install
-#             #  Add revert code here. You can find this in the Getting Started section.
-#               exit 1
-#             fi
+  revert-migrations:
+    parameters:
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Reverting migrations
+          when: on_fail
+          command: |
+            SUCCESS=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCLL//migration_<<parameters.workflow_id>>" -H "X-Api-Key: ${THISDB_API_KEY}"")
+            if (($SUCCESS == 1)); then
+              cd backend
+              npm install
+              npm run migrations:revert
+            fi
             
 jobs:
   build-frontend:
@@ -163,7 +160,6 @@ jobs:
     steps:
       - checkout
       - dependencies
-
       # Checkout code from git
       - run:
           name: Ensure back-end infrastructure exists
