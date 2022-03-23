@@ -376,8 +376,8 @@ jobs:
       - run:
           name: Backend smoke test
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters "Name=tag:project,Values=udapeople" --output text) 
-            export API_URL="http://${BACKEND_IP}:3030"
+            # export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --filters "Name=tag:project,Values=udapeople" --output text) 
+            export API_URL="http://34.209.65.175:3030"
             echo "${API_URL}" 
             if curl "${API_URL}/api/status" | grep "ok"
             then
@@ -388,7 +388,7 @@ jobs:
       - run:
           name: Smoke test for front end
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
+            URL="http://udapeople-21f9b25.s3-website-us-west-2.amazonaws.com"             
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
