@@ -97,6 +97,7 @@ jobs:
   test-backend:
     docker:
       - image: circleci/node:13.8.0
+      # Docker image here
     steps:
       - checkout
       - restore_cache:
@@ -261,10 +262,10 @@ jobs:
                 -H "X-Api-Key: ${THISDB_API_KEY}" \
                 -d "0"
             fi
-      - destroy-environment:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-      - revert-migrations:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
+  #     - destroy-environment:
+  #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+  #     - destroy-environment:
+  #         workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 
   deploy-frontend:
     docker:
@@ -289,10 +290,10 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
-      - destroy-environment:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-      - revert-migrations:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      # - destroy-environment:
+      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      # - revert-migrations:
+      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
   #     # Here's where you will add some code to rollback on failure
   #     - destroy-environment:
   #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
@@ -326,9 +327,6 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible nodejs npm tar gzip
-         
-            # mkdir -p ./ansible/roles/deploy/tasks/
-            # mv artifact.tar.gz ansible/roles/deploy/tasks/    
       - run:
           name: Deploy backend
           command: |
@@ -339,10 +337,13 @@ jobs:
             tar -C backend -czvf artifact.tar.gz .
             cat ~/project/.circleci/ansible/inventory.txt
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
-      - destroy-environment:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-      - revert-migrations:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+            # printenv | grep "TYPEORM" > ./backend/.env
+            # tar -C backend -czvf artifact.tar.gz .
+            # mkdir -p ./ansible/roles/deploy/tasks/
+            # mv artifact.tar.gz ansible/roles/deploy/tasks/
   smoke-test-backend:
     docker:
       - image: python:3.7-alpine3.11
@@ -361,7 +362,17 @@ jobs:
              BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
              API_URL="http://${BACKEND_IP}:3030"
              curl "${API_URL}/api/status"
-
+      - run:
+          name: Smoke test for front end
+          command: |
+            URL="http://udapeople-f7e30c9.s3-website-us-west-2.amazonaws.com/"             
+            echo ${URL} 
+            if curl -s ${URL} | grep "Welcome"
+            then
+              exit 0
+            else
+              exit 1
+            fi
   smoke-test-frontend:
     docker:
       - image: python:3.7-alpine3.11
@@ -377,33 +388,36 @@ jobs:
       - run:
           name: Smoke test for front end
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
+            URL="http://udapeople-f7e30c9.s3-website-us-west-2.amazonaws.com/"             
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
-              exit 1
+              exit 0
             else
               exit 1
             fi            
+      # - destroy-environment:
+      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      # - revert-migrations:
+      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}' 
+ 
+  cloudfront-update:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Updating cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+              --stack-name InitialStack \
+              --template-file .circleci/files/cloudfront.yml \
+              --parameter-overrides WorkflowId="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
       - revert-migrations:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}' 
- 
-#   cloudfront-update:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Update cloudfront distribution
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 
 # cleanup:
 #     docker:
@@ -457,7 +471,7 @@ workflows:
       - smoke-test-frontend:
           requires: [deploy-frontend]
       
-            # - cloudfront-update:
-      #     requires: [smoke-test]
+      - cloudfront-update:
+          requires: [smoke-test-backend,smoke-test-frontend]
       # - cleanup:
       #     requires: [cloudfront-update]
