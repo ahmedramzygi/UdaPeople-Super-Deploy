@@ -279,10 +279,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-             BACKEND_IP=$(aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=backend-prod-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --output text)
+             BACKEND_IP=$(aws cloudformation describe-stacks --stack-name udapeople-backend-"${CIRCLE_WORKFLOW_ID:0:7}" --query "Stacks[0].Outputs[0].OutputValue" --output text)
              API_URL="http://${BACKEND_IP}:3030"
              echo "API_URL=${API_URL}" >> frontend/.env
       - run:
@@ -364,11 +361,9 @@ jobs:
       - run:
           name: Backend smoke test
           command: |
-            backend_ip=$(aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicDnsName' \
-              --output text)
-            url=http://$backend_ip:3030/api/status
-            curl ${url}
+             BACKEND_IP=$(aws cloudformation describe-stacks --stack-name udapeople-backend-"${CIRCLE_WORKFLOW_ID:0:7}" --query "Stacks[0].Outputs[0].OutputValue" --output text)
+             API_URL="http://${BACKEND_IP}:3030"
+             curl "${API_URL}/api/status"
       - run:
           name: Smoke test for front end
           command: |
