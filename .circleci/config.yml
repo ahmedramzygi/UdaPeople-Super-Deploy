@@ -42,7 +42,7 @@ commands:
           name: Reverting migrations
           when: on_fail
           command: |
-            SUCCESS=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCLL//migration_<<parameters.workflow_id>>" -H "X-Api-Key: ${THISDB_API_KEY}"")
+            SUCCESS=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCLL//migration_<<parameters.workflow_id>>" -H "X-Api-Key: ${THISDB_API_KEY}")
             if (($SUCCESS == 1)); then
               cd backend
               npm install
