@@ -358,15 +358,13 @@ jobs:
       - image: alpine:latest
     steps:
       - checkout
-      - attach_workspace: 
-          at: ~/ 
+      - attach_workspace:
+          at: /root
       - run:
-          name: Install dependencies 
+          name: Install dependencies
           command: |
-            apk add --no-cache curl npm
-            python3 pip3 install --upgrade pip
-            pip3 install --no-cache-dir
-            awscli rm -rf /var/cache/apk/* 
+            apk add --update curl
+            pip install awscli
       - run:
           name: Checking backend
           command: |
