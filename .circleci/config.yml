@@ -226,8 +226,8 @@ jobs:
             cat ~/project/.circleci/ansible/inventory.txt
             export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/configure-server.yml    
-      - destroy-environment:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
+      # - destroy-environment:
+      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'  
 
 
 
@@ -465,7 +465,7 @@ workflows:
       # - deploy-infrastructure:
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
 
-      # - configure-infrastructure:
+      - configure-infrastructure
       #     requires: [deploy-infrastructure]
 
       # - run-migrations:
@@ -482,7 +482,7 @@ workflows:
       #     requires: [deploy-frontend]
       
       # - cloudfront-update
-        - cleanup
+        # - cleanup
           # requires: [smoke-test-backend,smoke-test-frontend]
       # - cleanup:
       #     requires: [cloudfront-update]
