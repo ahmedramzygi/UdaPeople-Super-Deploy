@@ -399,8 +399,9 @@ jobs:
             OldWorkflowID=$(aws cloudformation \
             list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
             --no-paginate --output text)
-            echo $OldWorkflowID >> ~/OldWorkflowID.txt
-            cat ~/OldWorkflowID.txt
+            curl https://kvdb.io/LHFkzdfqGQiT5AocazCCLL//migration_${CIRCLE_WORKFLOW_ID:0:7} \
+            -H "X-Api-Key: ${THISDB_API_KEY}" \
+            -d "$OldWorkflowID"  
       - run:
           name: Updating cloudfront distribution
           command: |
@@ -417,25 +418,23 @@ jobs:
 
   cleanup:
     docker:
-      - image: cimg/base:2021.04
+      - image: amazon/aws-cli
     steps:
       - checkout
-      - dependencies
       - run:
-          name: Removing old stacks and files
+          name: Remove old stacks and files
           command: |
-            BUCKETS=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCL/migration_${CIRCLE_WORKFLOW_ID:0:7}" \
-              -H "X-Api-Key: ${THISDB_API_KEY}")
-            if [[ "683c244" =~ "6f4e40c" ]]; then
-              LATEST_STACK_ID=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCL/migration_${OldWorkflowID}" -H "X-Api-Key: ${THISDB_API_KEY}")
-              CURRENT_STACK_ID="${CIRCLE_WORKFLOW_ID:0:7}"
-              echo "LATEST_STACK_ID: $LATEST_STACK_ID"
-              echo "CURRENT_STACK_ID: $CURRENT_STACK_ID"
+            if [[ 6f4e40c == "" ]]
+            then
+            echo "No workflow id found"
+            else
+            if [[ "683c244" != "6f4e40c" ]]
+            then
+              echo "$OldWorkflowID!=$CurrentWorkflowID => will delete old version"
+              aws s3 rm "s3://udapeople-6f4e40c" --recursive
               aws cloudformation delete-stack --stack-name "udapeople-frontend-6f4e40c"
               aws cloudformation delete-stack --stack-name "udapeople-backend-6f4e40c"
-              aws s3 rm "s3://udapeople-6f4e40c" --recursive
-            else
-              echo "Skipping..."
+            fi
             fi
 
 workflows:
