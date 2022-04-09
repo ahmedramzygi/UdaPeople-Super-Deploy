@@ -411,7 +411,7 @@ jobs:
             aws cloudformation deploy \
             --template-file .circleci/files/cloudfront.yml \
             --stack-name InitialStack \
-            --parameter-overrides WorkflowID="udapeople-eea550d" \
+            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
 
       - destroy-environment:
@@ -428,7 +428,7 @@ jobs:
       - run:
           name: Removing old stacks and files
           command: |
-            BUCKETS=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCL//migration_eea550d" \
+            BUCKETS=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCL//migration_${CIRCLE_WORKFLOW_ID:0:7}" \
               -H "X-Api-Key: ${THISDB_API_KEY}")
             if [[ $BUCKETS =~ latest-stack ]]; then
               LATEST_STACK_ID=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCL/latest-stack" -H "X-Api-Key: ${THISDB_API_KEY}")
@@ -462,24 +462,20 @@ workflows:
           requires: [build-backend]
       - scan-frontend:
           requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-
-      # - configure-infrastructure
-      #     requires: [deploy-infrastructure]
-
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-
-      # - deploy-backend:
-      #     requires: [run-migrations]
-      # - smoke-test-backend:
-      #     requires: [deploy-backend]
-      # - smoke-test-frontend:
-      #     requires: [deploy-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
+      - smoke-test-backend:
+          requires: [deploy-backend]
+      - smoke-test-frontend:
+          requires: [deploy-frontend]
       
       # - cloudfront-update
         # - cleanup
