@@ -426,7 +426,7 @@ jobs:
           command: |
             BUCKETS=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCLL//migration_683c244" \
               -H "X-Api-Key: ${THISDB_API_KEY}")
-            if [[ 683c244 =~ 6f4e40c ]]; then
+            if [[ "683c244" =~ "6f4e40c" ]]; then
               LATEST_STACK_ID=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCLL//migration_6f4e40c" -H "X-Api-Key: ${THISDB_API_KEY}")
               CURRENT_STACK_ID=683c244
               echo "LATEST_STACK_ID: $LATEST_STACK_ID"
