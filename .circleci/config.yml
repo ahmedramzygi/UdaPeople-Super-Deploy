@@ -424,58 +424,51 @@ jobs:
       - run:
           name: Removing old stacks and files
           command: |
-            BUCKETS=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCLL//migration_683c244" \
+            BUCKETS=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCL/migration_${CIRCLE_WORKFLOW_ID:0:7}" \
               -H "X-Api-Key: ${THISDB_API_KEY}")
             if [[ "683c244" =~ "6f4e40c" ]]; then
-              LATEST_STACK_ID=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCLL//migration_6f4e40c" -H "X-Api-Key: ${THISDB_API_KEY}")
-              CURRENT_STACK_ID=683c244
+              LATEST_STACK_ID=$(curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCL/migration_${OldWorkflowID}" -H "X-Api-Key: ${THISDB_API_KEY}")
+              CURRENT_STACK_ID="${CIRCLE_WORKFLOW_ID:0:7}"
               echo "LATEST_STACK_ID: $LATEST_STACK_ID"
               echo "CURRENT_STACK_ID: $CURRENT_STACK_ID"
-              aws cloudformation delete-stack --stack-name "udapeople-frontend-${LATEST_STACK_ID}"
-              aws cloudformation delete-stack --stack-name "udapeople-backend-${LATEST_STACK_ID}"
-              aws s3 rm "s3://udapeople-${LATEST_STACK_ID}" --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-6f4e40c"
+              aws cloudformation delete-stack --stack-name "udapeople-backend-6f4e40c"
+              aws s3 rm "s3://udapeople-6f4e40c" --recursive
             else
               echo "Skipping..."
             fi
-      - run:
-          name: Storing current stack workflow id
-          command: |
-            curl "https://kvdb.io/LHFkzdfqGQiT5AocazCCL/683c244" \
-              -H "X-Api-Key: ${THISDB_API_KEY}" \
-              -d "${CIRCLE_WORKFLOW_ID:0:7}"
-            
 
 workflows:
   default:
     jobs:
-      # - build-frontend
-      # - build-backend
-      # - test-frontend:
-      #     requires: [build-frontend]
-      # - test-backend:
-      #     requires: [build-backend]
-      # - scan-backend:
-      #     requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
-      # - smoke-test-backend:
-      #     requires: [deploy-backend]
-      # - smoke-test-frontend:
-      #     requires: [deploy-frontend]
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires: [build-frontend]
+      - test-backend:
+          requires: [build-backend]
+      - scan-backend:
+          requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
+      - deploy-frontend:
+          requires: [run-migrations]
+      - deploy-backend:
+          requires: [run-migrations]
+      - smoke-test-backend:
+          requires: [deploy-backend]
+      - smoke-test-frontend:
+          requires: [deploy-frontend]
       
-      # - cloudfront-update:
-      #     requires: [smoke-test-backend,smoke-test-frontend]
-      - cleanup
-          # requires: [smoke-test-backend,smoke-test-frontend]
+      - cloudfront-update:
+          requires: [smoke-test-backend,smoke-test-frontend]
+      - cleanup:
+          requires: [smoke-test-backend,smoke-test-frontend]
       # - cleanup:
       #     requires: [cloudfront-update]
