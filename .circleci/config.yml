@@ -339,11 +339,7 @@ jobs:
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
 
       # - destroy-environment:
-      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-            # printenv | grep "TYPEORM" > ./backend/.env
-            # tar -C backend -czvf artifact.tar.gz .
-            # mkdir -p ./ansible/roles/deploy/tasks/
-            # mv artifact.tar.gz ansible/roles/deploy/tasks/
+
   smoke-test-backend:
     docker:
       - image: python:3.7-alpine3.11
