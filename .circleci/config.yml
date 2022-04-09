@@ -414,10 +414,10 @@ jobs:
             --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
 
-      - destroy-environment:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-      - revert-migrations:
-          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      # - destroy-environment:
+      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      # - revert-migrations:
+      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 
   cleanup:
     docker:
@@ -472,12 +472,12 @@ workflows:
       #     requires: [run-migrations]
       # - deploy-backend:
       #     requires: [run-migrations]
-      - smoke-test-backend
+      # - smoke-test-backend
           # requires: [deploy-backend]
       # - smoke-test-frontend:
       #     requires: [deploy-frontend]
       
-      # - cloudfront-update
+      - cloudfront-update
         # - cleanup
           # requires: [smoke-test-backend,smoke-test-frontend]
       # - cleanup:
