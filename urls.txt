@@ -2,4 +2,7 @@ Public Url to GitHub repository (not private) [URL01]
     https://github.com/ahmedramzygi/UdaPeople-Super-Deploy
 
 Public URL for your S3 Bucket (aka, your green candidate front-end) [URL02]
-    http://udapeople-eea550d.s3-website-us-west-2.amazonaws.com/
+    http://udapeople-683c244.s3-website-us-west-2.amazonaws.com/
+
+Evidence of deployed and functioning Frontend in CloudFront. [URL03]
+    http://d3eguuu959h6hc.cloudfront.net/#/employees
