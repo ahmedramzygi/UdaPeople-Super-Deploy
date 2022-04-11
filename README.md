@@ -19,7 +19,7 @@ In this project, you will prove your mastery of the following learning objective
 
 ### Screenshots 
 
-- ![Alt text]( Screenshots/SCREENSHOT01.PNG?raw=true   Screenshot1)
+![Screenshot1](Screenshots/SCREENSHOT01.PNG )
 
 ### Built With
 
