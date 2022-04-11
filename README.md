@@ -19,7 +19,7 @@ In this project, you will prove your mastery of the following learning objective
 
 ### Screenshots 
 
-- ![Alt text](https://github.com/ahmedramzygi/UdaPeople-Super-Deploy/blob/master/Screenshots/SCREENSHOT01.PNG    Screenshot1)
+- ![Alt text]( Screenshots/SCREENSHOT01.PNG?raw=true   Screenshot1)
 
 ### Built With
 
