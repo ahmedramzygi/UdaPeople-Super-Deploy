@@ -40,7 +40,7 @@ In this project, you will prove your mastery of the following learning objective
 ![Slack](Screenshots/URL03_SCREENSHOT.PNG)
 
 8) Cleanup of old workflow
- ![Slack](Screenshots/SCREENSHOT07.PNG)
+ ![Slack](Screenshots/SCREENSHOT07_2.PNG)
 
 
 ### Built With
