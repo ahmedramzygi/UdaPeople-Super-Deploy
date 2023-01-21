@@ -453,11 +453,11 @@ workflows:
   UdaPeopleCIWorkflow:
 
     jobs:
-      - build-frontend:
+      - build-frontend
     #      filters:
     #        branches:
     #          only: [ dev-branch ]
-      - build-backend:
+      - build-backend
     #      filters:
     #        branches:
     #          only: [ dev-branch ]
