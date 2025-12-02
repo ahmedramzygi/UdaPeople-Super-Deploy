@@ -104,7 +104,7 @@
     "redux": "^4.0.3",
     "redux-actions": "^2.6.5",
     "redux-thunk": "^2.3.0",
-    "sweetalert2": "^8.13.4"
+    "sweetalert2": "^8.19.1"
   },
   "jest": {
     "rootDir": "src",
